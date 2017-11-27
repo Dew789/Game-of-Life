@@ -1,0 +1,38 @@
+* {
+    padding:0;
+    margin:0;
+}
+
+.cell {
+    float: left;
+    height: 15px;
+    width: 15px;
+    border: 1px solid #999;
+    background: #808080;
+}
+
+.live {
+    background: #ffff00;
+}
+
+.space {
+    overflow: hidden;
+    width: 980px;
+    height: 600px;
+    margin: auto;
+}
+
+.side-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 400px;
+    width: 150px;
+    background-color: #999;
+}
+
+.btn {
+    display: block;
+    margin: 20px;
+    width: 50px;
+}
