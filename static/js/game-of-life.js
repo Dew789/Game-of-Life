@@ -39,9 +39,27 @@ function ControlBtn(props) {
     );
 }
 
+function LifeForm(props) {
+    return (
+        <form className="init-form">
+            <label> Pick a life-from:
+            <select onChange={props.onChange}>
+                <option value="none">None</option>
+                <option value="gilder">Gilder</option>
+                <option value="smallExploder">Small Exploder</option>
+                <option value="cellsRow">3 cell row</option>
+                <option value="lightShip">Spaceship</option>
+            </select>
+            </label>
+        </form>
+    );
+}
+
 function SideBar(props) {
     return (
         <div className="side-bar">
+            <h2 className="caption">Conway's Game of Life</h2>
+            <LifeForm onChange={props.onLifeFromChange}/>
             <ControlBtn name="Start" onClick={props.onStartClick}/>
             <ControlBtn name="Stop" onClick={props.onStopClick}/>
             <ControlBtn name="Clear" onClick={props.onClearClick}/>
@@ -76,15 +94,15 @@ function liveNeighbors(cells, index, columNum) {
             index+columNum-1, index+columNum, index+columNum+1
         ];
     }
-    for (index of aroundIndex) {
-        if (index>=0 && index<=length) {
-            lives += cells[index] & 1;
+    for (let paraIndex of aroundIndex) {
+        if (paraIndex>=0 && paraIndex<=length) {
+            lives += cells[paraIndex] & 1;
         }
     }
     return lives;
 }
 
-function nextGeneration(cells, columNum) {
+function nextGeneration(currCells, columNum) {
     /*
         [2nd bit, 1st bit] = [next state, current state]
         - 00  dead (next) <- dead (current) 0
@@ -92,8 +110,9 @@ function nextGeneration(cells, columNum) {
         - 10  live (next) <- dead (current) 2 
         - 11  live (next) <- live (current) 3
     */
-    for (var i = 0; i < cells.length; i++) {
-        var lives = liveNeighbors(cells, i, columNum);
+    const cells = currCells.slice();
+    for (let i = 0; i < cells.length; i++) {
+        const lives = liveNeighbors(cells, i, columNum);
          if (cells[i] == 1 && lives >= 2 && lives <= 3) {  
             cells[i] = 3;
          }
@@ -101,7 +120,7 @@ function nextGeneration(cells, columNum) {
              cells[i] = 2;
          }
     }
-    for (var i = 0; i < cells.length; i++) {
+    for (let i = 0; i < cells.length; i++) {
         cells[i] >>= 1;
     }
     return cells;
@@ -111,30 +130,60 @@ class Game extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            cells: Array(1995).fill(0)
+            cells: Array(1995).fill(0),
         }
     }
 
     // 初始化点击
     handleClick(i) {
-        this.state.cells[i] = 1;
-        this.setState({cells: this.state.cells});
+        const cells = this.state.cells.slice();
+        cells[i] = 1;
+        this.setState({cells: cells});
+    }
+
+    BuiltinLifeFroms(form) {
+        const cells = Array(1995).fill(0);
+        const lifeFrom = {
+            'none': [],
+            'gilder': [822, 880, 935, 936, 937],
+            'smallExploder': [825, 881, 882, 883, 938, 940, 996],   
+            'cellsRow': [881, 882, 883,],
+            'lightShip': [763, 764, 765, 766, 819, 823, 880, 933, 936]
+        };
+        for (let index of lifeFrom[form]) {
+            cells[index] = 1
+        }
+        return cells;
+    }
+
+    handleLifeFormChange(event) {
+        clearInterval(this.timerID);
+        const form = event.target.value;
+        this.setState({cells: this.BuiltinLifeFroms(form)});
+    }
+
+    setnextGeneration() {
+        this.setState(function(prevState) {
+            return {
+                cells: nextGeneration(prevState.cells, 57)
+            };
+        });
     }
 
     handleClearClick() {
+        clearInterval(this.timerID);
         this.setState({cells: Array(1995).fill(0)});
     }
 
     handleStartClick() {
-        this.timerID = setInterval(function() {
-            const next = nextGeneration(this.state.cells, 57);
-            that.setState({cells: next});
-        },1000);
+        this.timerID = setInterval(
+            () => this.setnextGeneration(),
+            1000
+        );
     }
 
     handleStopClick() {
         clearInterval(this.timerID);
-        this.setState({cells: Array(1995).fill(false)});
     }
 
     render() {
@@ -148,6 +197,7 @@ class Game extends React.Component {
                     onStartClick = {() => this.handleStartClick()}
                     onStopClick = {() => this.handleStopClick()}
                     onClearClick = {() => this.handleClearClick()}
+                    onLifeFromChange = {(event) => this.handleLifeFormChange(event)}
                 />
             </div>
         );
